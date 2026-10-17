@@ -1,58 +1,18 @@
-<div align="center">
+# PureComfyUI
 
-# ComfyUI
-**The most powerful and modular AI engine for content creation.**
+A fork of [ComfyUI](https://github.com/Comfy-Org/ComfyUI) that only runs locally.
 
+## What is different from upstream
 
-[![Website][website-shield]][website-url]
-[![Dynamic JSON Badge][discord-shield]][discord-url]
-[![Twitter][twitter-shield]][twitter-url]
-[![Matrix][matrix-shield]][matrix-url]
-<br>
-[![][github-release-shield]][github-release-link]
-[![][github-release-date-shield]][github-release-link]
-[![][github-downloads-shield]][github-downloads-link]
-[![][github-downloads-latest-shield]][github-downloads-link]
+- **No API nodes.** All paid partner nodes (OpenAI, Gemini, Kling, Runway and the rest) are removed.
+- **No account sign-in.** The Comfy account login, API keys and the plumbing that passed them to nodes are removed.
+- **No ComfyUI-Manager.** It downloads and installs packs from a remote registry, so it is gone.
+- **No remote frontend downloads.** The UI comes only from the installed `comfyui-frontend-package`, or a local folder given with `--front-end-root`.
+- **No telemetry.** The frontend is told telemetry and sign-in are off, and the web UI is always served with a Content-Security-Policy that blocks connections to anything other than this server.
 
-[matrix-shield]: https://img.shields.io/badge/Matrix-000000?style=flat&logo=matrix&logoColor=white
-[matrix-url]: https://app.element.io/#/room/%23comfyui_space%3Amatrix.org
-[website-shield]: https://img.shields.io/badge/ComfyOrg-4285F4?style=flat
-[website-url]: https://www.comfy.org/
-<!-- Workaround to display total user from https://github.com/badges/shields/issues/4500#issuecomment-2060079995 -->
-[discord-shield]: https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fdiscord.com%2Fapi%2Finvites%2Fcomfyorg%3Fwith_counts%3Dtrue&query=%24.approximate_member_count&logo=discord&logoColor=white&label=Discord&color=green&suffix=%20total
-[discord-url]: https://discord.com/invite/comfyorg
-[twitter-shield]: https://img.shields.io/twitter/follow/ComfyUI
-[twitter-url]: https://x.com/ComfyUI
+Nothing in this fork sends data anywhere. The exception is custom nodes: any custom node you install runs its own Python code, which can make network requests this fork has no control over. Review what you install.
 
-[github-release-shield]: https://img.shields.io/github/v/release/comfyanonymous/ComfyUI?style=flat&sort=semver
-[github-release-link]: https://github.com/comfyanonymous/ComfyUI/releases
-[github-release-date-shield]: https://img.shields.io/github/release-date/comfyanonymous/ComfyUI?style=flat
-[github-downloads-shield]: https://img.shields.io/github/downloads/comfyanonymous/ComfyUI/total?style=flat
-[github-downloads-latest-shield]: https://img.shields.io/github/downloads/comfyanonymous/ComfyUI/latest/total?style=flat&label=downloads%40latest
-[github-downloads-link]: https://github.com/comfyanonymous/ComfyUI/releases
-
-<img width="1590" height="795" alt="ComfyUI Screenshot" src="https://github.com/user-attachments/assets/36e065e0-bfae-4456-8c7f-8369d5ea48a2" />
-<br>
-</div>
-
-ComfyUI is the AI creation engine for visual professionals who demand control over every model, every parameter, and every output. Its powerful and modular node graph interface empowers creatives to generate images, videos, 3D models, audio, and more...
-- ComfyUI natively supports the latest open-source state of the art models.
-- It is by far the most optimized inference engine for diffusion models in the world with a focus on local consumer hardware.
-- Can run even the biggest open source models on as low as 4GB vram + 8GB ram relatively quickly (saturating your GPU compute) using our state of the art asynchronous weight streaming technology.
-- It is available on Windows, Linux, and macOS, locally with our [desktop application](https://www.comfy.org/download), our [portable install](#installing) or on our [cloud](https://www.comfy.org/cloud).
-- The most sophisticated workflows can be exposed through a simple UI thanks to App Mode.
-- It integrates seamlessly into production pipelines with our API endpoints.
-
-## Get Started
-
-### Local
-
-#### [Desktop Application](https://www.comfy.org/download)
-- The easiest way to get started.
-- Available on Windows & macOS.
-
-#### [Manual Install](#manual-install-windows-linux)
-Supports all operating systems and GPU types (NVIDIA, AMD, Intel, Apple Silicon, Ascend).
+Downloads only happen when you ask for them: `pip install` for dependencies, and model files you fetch yourself.
 
 ## Examples
 See what ComfyUI can do with the [newer template workflows](https://comfy.org/workflows) or old [example workflows](https://comfyanonymous.github.io/ComfyUI_examples/).
@@ -72,32 +32,11 @@ See what ComfyUI can do with the [newer template workflows](https://comfy.org/wo
 - Load complete checkpoints or separate diffusion models, VAEs, text encoders, LoRAs, ControlNets, adapters, and upscalers from supported model formats.
 - Built-in tools for inpainting, outpainting, reference conditioning, masks and compositing, model merging, upscaling, frame interpolation, segmentation, depth estimation, and media processing.
 - Save and load workflows as JSON, or recover complete workflows and seeds from supported generated media.
-- Runs fully offline: no API nodes, no account sign-in, no ComfyUI-Manager, no remote frontend downloads. The web UI is always served with a Content-Security-Policy that blocks connections to anything other than this server.
 - Extend ComfyUI with custom nodes
 - Configure additional model locations with [`extra_model_paths.yaml`](extra_model_paths.yaml.example).
 - Support for saving and loading high bit depth images and videos: 16 bit PNG images, 32 bit EXR, 10 bit AVIF are supported and more.
 - Support for saving and loading HDR videos and images in various formats.
 
-
-## Release Process
-
-ComfyUI follows a weekly release cycle targeting Monday but this regularly changes because of model releases or large changes to the codebase. There are three interconnected repositories:
-
-1. **[ComfyUI Core](https://github.com/comfyanonymous/ComfyUI)**
-   - Releases a new major stable version (e.g., v0.7.0) roughly every 2 weeks.
-   - Starting from v0.4.0 patch versions will be used for fixes backported onto the current stable release.
-   - Minor versions will be used for releases off the master branch.
-   - Patch versions may still be used for releases on the master branch in cases where a backport would not make sense.
-   - Commits outside of the stable release tags may be very unstable and break many custom nodes.
-   - Serves as the foundation for the desktop release
-
-2. **[Comfy Desktop](https://github.com/Comfy-Org/Comfy-Desktop)**
-   - Builds a new release using the latest stable core version
-
-3. **[ComfyUI Frontend](https://github.com/Comfy-Org/ComfyUI_frontend)**
-   - Every 2+ weeks frontend updates are merged into the core repository
-   - Features are frozen for the upcoming core release
-   - Development continues for the next release cycle
 
 ## Shortcuts
 
@@ -138,49 +77,6 @@ ComfyUI follows a weekly release cycle targeting Monday but this regularly chang
 `Ctrl` can also be replaced with `Cmd` instead for macOS users
 
 # Installing
-
-## Windows and Mac
-
-We highly recommend using the [desktop app](https://comfy.org/download):
-
-### [Link to Download](https://comfy.org/download)
-
-The desktop app is the easiest and best way to use ComfyUI for new users.
-
-## Windows Portable
-
-There is a portable standalone build for Windows that should work for running on Nvidia GPUs or for running on your CPU only. It is not recommended for regular users. Regular users should use the desktop app above.
-
-[Direct link to download (nvidia)](https://github.com/comfyanonymous/ComfyUI/releases/latest/download/ComfyUI_windows_portable_nvidia.7z)
-
-Simply download, extract with [7-Zip](https://7-zip.org) or with the windows explorer on recent windows versions and run. For smaller models you normally only need to put the checkpoints (the huge ckpt/safetensors files) in: ComfyUI\models\checkpoints but many of the larger models have multiple files. Make sure to follow the instructions to know which subfolder to put them in ComfyUI\models\
-
-If you have trouble extracting it, right click the file -> properties -> unblock
-
-The portable above currently comes with python 3.13 and pytorch cuda 13.0. Update your Nvidia drivers if it doesn't start.
-
-#### All Official Portable Downloads:
-
-[Portable for AMD GPUs](https://github.com/comfyanonymous/ComfyUI/releases/latest/download/ComfyUI_windows_portable_amd.7z)
-
-[Portable for Intel GPUs](https://github.com/comfyanonymous/ComfyUI/releases/latest/download/ComfyUI_windows_portable_intel.7z)
-
-[Portable for Nvidia GPUs](https://github.com/comfyanonymous/ComfyUI/releases/latest/download/ComfyUI_windows_portable_nvidia.7z) (supports 20 series and above).
-
-[Portable for Nvidia GPUs with pytorch cuda 12.6 and python 3.12](https://github.com/comfyanonymous/ComfyUI/releases/latest/download/ComfyUI_windows_portable_nvidia_cu126.7z) (Supports Nvidia 10 series and older GPUs, DO NOT USE THIS ON NEWER 20 SERIES AND ABOVE GPUS).
-
-#### How do I share models between another UI and ComfyUI?
-
-See the [Config file](extra_model_paths.yaml.example) to set the search paths for models. In the standalone windows build you can find this file in the ComfyUI directory. Rename this file to extra_model_paths.yaml and edit it with your favorite text editor.
-
-
-## [comfy-cli](https://docs.comfy.org/comfy-cli/getting-started)
-
-You can install and start ComfyUI using comfy-cli:
-```bash
-pip install comfy-cli
-comfy install
-```
 
 ## Manual Install (Windows, Linux)
 
@@ -359,24 +255,6 @@ Use `--tls-keyfile key.pem --tls-certfile cert.pem` to enable TLS/SSL, the app w
 
 > Note: Windows users can use [alexisrolland/docker-openssl](https://github.com/alexisrolland/docker-openssl) or one of the [3rd party binary distributions](https://wiki.openssl.org/index.php/Binaries) to run the command example above.
 <br/><br/>If you use a container, note that the volume mount `-v` can be a relative path so `... -v ".\:/openssl-certs" ...` would create the key & cert files in the current directory of your command prompt or powershell terminal.
-
-## Support and dev channel
-
-[Discord](https://comfy.org/discord): Try the #help or #feedback channels.
-
-[Matrix space: #comfyui_space:matrix.org](https://app.element.io/#/room/%23comfyui_space%3Amatrix.org) (it's like discord but open source).
-
-See also: [https://www.comfy.org/](https://www.comfy.org/)
-
-> _psst — we're hiring!_ Help build ComfyUI: [comfy.org/careers](https://www.comfy.org/careers)
-
-## Frontend Development
-
-As of August 15, 2024, we have transitioned to a new frontend, which is now hosted in a separate repository: [ComfyUI Frontend](https://github.com/Comfy-Org/ComfyUI_frontend). The compiled JS files (from TS/Vue) are published to [pypi](https://pypi.org/project/comfyui-frontend-package) and installed as a dependency in ComfyUI.
-
-### Reporting Issues and Requesting Features
-
-For any bugs, issues, or feature requests related to the frontend, please use the [ComfyUI Frontend repository](https://github.com/Comfy-Org/ComfyUI_frontend). This will help us manage and address frontend-specific concerns more efficiently.
 
 # QA
 
