@@ -40,7 +40,6 @@ from comfy.deploy_environment import get_deploy_environment
 import comfy.utils
 import comfy.model_management
 from comfy_api import feature_flags
-from comfy.comfy_api_env import get_environment_overrides
 import node_helpers
 from comfyui_version import __version__
 from app.frontend_management import FrontendManager, parse_version
@@ -73,9 +72,6 @@ if TYPE_CHECKING:
 
 # Import cache control middleware
 from middleware.cache_middleware import cache_control
-
-if args.enable_manager:
-    import comfyui_manager
 
 
 def valid_workflow_metadata(json_data: dict) -> Optional[dict]:
@@ -282,18 +278,14 @@ class PromptServer():
         else:
             middlewares.append(create_origin_only_middleware())
 
-        if args.offline:
-            middlewares.append(create_block_external_middleware())
-
-        if args.enable_manager:
-            middlewares.append(comfyui_manager.create_middleware())
+        middlewares.append(create_block_external_middleware())
 
         max_upload_size = round(args.max_upload_size * 1024 * 1024)
         self.app = web.Application(client_max_size=max_upload_size, middlewares=middlewares)
         self.sockets = dict()
         self.sockets_metadata = dict()
         self.web_root = (
-            FrontendManager.init_frontend(args.front_end_version)
+            FrontendManager.init_frontend()
             if args.front_end_root is None
             else args.front_end_root
         )
@@ -823,11 +815,7 @@ class PromptServer():
 
         @routes.get("/features")
         async def get_features(request):
-            features = feature_flags.get_server_features()
-            overrides = get_environment_overrides()
-            if overrides:
-                features.update(overrides)
-            return web.json_response(features)
+            return web.json_response(feature_flags.get_server_features())
 
         @routes.get("/default_workflow")
         async def get_default_workflow(request):
@@ -1213,16 +1201,11 @@ class PromptServer():
                 if metadata is not None:
                     extra_data["workflow_metadata"] = metadata
 
-                if "comfy_usage_source" not in extra_data:
-                    usage_source = request.headers.get("Comfy-Usage-Source")
-                    if usage_source:
-                        extra_data["comfy_usage_source"] = usage_source
                 if valid[0]:
                     outputs_to_execute = valid[2]
                     sensitive = {}
-                    for sensitive_val in execution.SENSITIVE_EXTRA_DATA_KEYS:
-                        if sensitive_val in extra_data:
-                            sensitive[sensitive_val] = extra_data.pop(sensitive_val)
+                    for discarded_key in execution.DISCARDED_EXTRA_DATA_KEYS:
+                        extra_data.pop(discarded_key, None)
                     extra_data["create_time"] = int(time.time() * 1000)  # timestamp in milliseconds
                     self.prompt_queue.put((number, prompt_id, prompt, extra_data, outputs_to_execute, sensitive))
                     response = {"prompt_id": prompt_id, "number": number, "node_errors": valid[3]}

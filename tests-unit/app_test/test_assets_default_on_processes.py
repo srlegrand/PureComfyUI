@@ -25,7 +25,6 @@ def _comfy_args(base: Path, *flags: str) -> list[str]:
         str(REPO_ROOT / "main.py"),
         "--cpu",
         "--disable-all-custom-nodes",
-        "--disable-partner-nodes",
         f"--base-directory={base}",
         f"--front-end-root={base}",
         f"--database-url=sqlite:///{_db(base)}",

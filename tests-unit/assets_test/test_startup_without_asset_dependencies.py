@@ -28,7 +28,6 @@ def run_quick_startup(tmp_path: Path, *flags: str) -> subprocess.CompletedProces
             "--cpu",
             "--quick-test-for-ci",
             "--disable-all-custom-nodes",
-            "--disable-api-nodes",
             f"--base-directory={tmp_path}",
             f"--front-end-root={tmp_path}",
             f"--database-url=sqlite:///{tmp_path / 'assets.sqlite3'}",

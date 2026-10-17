@@ -635,11 +635,6 @@ components:
                     additionalProperties: true
                     description: |
                         Full ComfyUI workflow (10-100KB, omitted if not available).
-
-                        Sensitive credentials are redacted before the response is returned:
-                        `extra_data.api_key_comfy_org`, when present, is replaced with the
-                        literal string `"[REDACTED]"`. The field is preserved (not removed)
-                        so existence checks still pass, but the value is not usable.
                     type: object
                 workflow_id:
                     description: UUID identifying the workflow graph definition

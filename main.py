@@ -12,7 +12,6 @@ if args.list_feature_flags:
 
 import os
 import importlib.util
-import shutil
 import importlib.metadata
 import folder_paths
 import time
@@ -56,9 +55,6 @@ if __name__ == "__main__":
 
     if args.enable_asset_hashing and args.disable_assets:
         logging.warning("--enable-asset-hashing is ignored because the assets system is off. Start ComfyUI with --enable-assets, and without --disable-assets, to use it.")
-
-    if args.disable_api_nodes:
-        logging.warning("--disable-api-nodes is deprecated and will be removed in a future version. It currently behaves like --offline. Use --offline to keep the frontend offline, or --disable-partner-nodes to only disable partner nodes.")
 
 faulthandler.enable(file=sys.stderr, all_threads=args.debug_hang)
 if __name__ == "__main__" and args.debug_hang:
@@ -112,19 +108,6 @@ if __name__ == "__main__":
 
     if "rocm" in cuda_malloc.get_torch_version_noimport():
         os.environ['OCL_SET_SVM_SIZE'] = '4194304'  # 4TB. Much larger than the ROCM 64GB/256GB defaults for Aimdos liberal VA use
-
-
-def handle_comfyui_manager_unavailable():
-    manager_req_path = os.path.join(os.path.dirname(os.path.abspath(folder_paths.__file__)), "manager_requirements.txt")
-    uv_available = shutil.which("uv") is not None
-
-    pip_cmd = f"{sys.executable} -m pip install -r {manager_req_path}"
-    msg = f"\n\nTo use the `--enable-manager` feature, the `comfyui-manager` package must be installed first.\ncommand:\n\t{pip_cmd}"
-    if uv_available:
-        msg += f"\nor using uv:\n\tuv pip install -r {manager_req_path}"
-    msg += "\n"
-    logging.warning(msg)
-    args.enable_manager = False
 
 
 def apply_custom_paths():
@@ -198,10 +181,6 @@ def execute_prestartup_script():
         for possible_module in possible_modules:
             module_path = os.path.join(custom_node_path, possible_module)
 
-            if args.enable_manager:
-                if comfyui_manager.should_be_disabled(module_path):
-                    continue
-
             if os.path.isfile(module_path) or module_path.endswith(".disabled") or module_path == "__pycache__":
                 continue
 
@@ -231,18 +210,6 @@ def execute_prestartup_script():
 governance.initialize()
 apply_custom_paths()
 init_mime_types()
-
-if args.enable_manager:
-    if importlib.util.find_spec("comfyui_manager"):
-        import comfyui_manager
-
-        if not comfyui_manager.__file__ or not comfyui_manager.__file__.endswith('__init__.py'):
-            handle_comfyui_manager_unavailable()
-    else:
-        handle_comfyui_manager_unavailable()
-
-if args.enable_manager:
-    comfyui_manager.prestartup()
 
 execute_prestartup_script()
 
@@ -593,13 +560,9 @@ def start_comfyui(asyncio_loop=None):
         asyncio.set_event_loop(asyncio_loop)
     prompt_server = server.PromptServer(asyncio_loop, asset_manager)
 
-    if args.enable_manager and not args.disable_manager_ui:
-        comfyui_manager.start()
-
     hook_breaker_ac10a0.save_functions()
     asyncio_loop.run_until_complete(nodes.init_extra_nodes(
         init_custom_nodes=(not args.disable_all_custom_nodes) or len(args.whitelist_custom_nodes) > 0,
-        init_api_nodes=not args.disable_partner_nodes
     ))
     disabled_nodes = governance.load_disabled_nodes(args.disabled_nodes_config) if args.disabled_nodes_config else set()
     governance.apply_disabled_nodes(disabled_nodes)

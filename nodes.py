@@ -4,7 +4,6 @@ import torch
 import os
 import sys
 import json
-import glob
 import hashlib
 import inspect
 
@@ -43,9 +42,6 @@ from app import governance
 import folder_paths
 import latent_preview
 import node_helpers
-
-if args.enable_manager:
-    import comfyui_manager
 
 def before_node_execution():
     comfy.model_management.throw_exception_if_processing_interrupted()
@@ -2382,11 +2378,6 @@ async def init_external_custom_nodes():
                 logging.info(f"Skipping {possible_module} due to disable_all_custom_nodes and whitelist_custom_nodes")
                 continue
 
-            if args.enable_manager:
-                if comfyui_manager.should_be_disabled(module_path):
-                    logging.info(f"Blocked by policy: {module_path}")
-                    continue
-
             refusal = governance.pack_refusal(module_path)
             if refusal is not None:
                 logging.warning(refusal)
@@ -2572,17 +2563,6 @@ async def init_builtin_extra_nodes():
     return import_failed
 
 
-async def init_builtin_api_nodes():
-    api_nodes_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), "comfy_api_nodes")
-    api_nodes_files = sorted(glob.glob(os.path.join(api_nodes_dir, "nodes_*.py")))
-
-    import_failed = []
-    for node_file in api_nodes_files:
-        if not await load_custom_node(node_file, module_parent="comfy_api_nodes"):
-            import_failed.append(os.path.basename(node_file))
-
-    return import_failed
-
 async def init_public_apis():
     register_versions([
         ComfyAPIWithVersion(
@@ -2591,30 +2571,15 @@ async def init_public_apis():
         ) for v in supported_versions
     ])
 
-async def init_extra_nodes(init_custom_nodes=True, init_api_nodes=True):
+async def init_extra_nodes(init_custom_nodes=True):
     await init_public_apis()
 
     import_failed = await init_builtin_extra_nodes()
-
-    import_failed_api = []
-    if init_api_nodes:
-        import_failed_api = await init_builtin_api_nodes()
 
     if init_custom_nodes:
         await init_external_custom_nodes()
     else:
         logging.info("Skipping loading of custom nodes")
-
-    if len(import_failed_api) > 0:
-        logging.warning("WARNING: some comfy_api_nodes/ nodes did not import correctly. This may be because they are missing some dependencies.\n")
-        for node in import_failed_api:
-            logging.warning("IMPORT FAILED: {}".format(node))
-        logging.warning("\nThis issue might be caused by new missing dependencies added the last time you updated ComfyUI.")
-        if args.windows_standalone_build:
-            logging.warning("Please run the update script: update/update_comfyui.bat")
-        else:
-            logging.warning("Please do a: pip install -r requirements.txt")
-        logging.warning("")
 
     if len(import_failed) > 0:
         logging.warning("WARNING: some comfy_extras/ nodes did not import correctly. This may be because they are missing some dependencies.\n")

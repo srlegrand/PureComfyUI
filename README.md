@@ -39,7 +39,6 @@ ComfyUI is the AI creation engine for visual professionals who demand control ov
 - ComfyUI natively supports the latest open-source state of the art models.
 - It is by far the most optimized inference engine for diffusion models in the world with a focus on local consumer hardware.
 - Can run even the biggest open source models on as low as 4GB vram + 8GB ram relatively quickly (saturating your GPU compute) using our state of the art asynchronous weight streaming technology.
-- [Partner nodes](https://docs.comfy.org/tutorials/partner-nodes/overview#partner-nodes) provide access to the best closed source models such as Nano Banana, Seedance, Hunyuan3D, etc.
 - It is available on Windows, Linux, and macOS, locally with our [desktop application](https://www.comfy.org/download), our [portable install](#installing) or on our [cloud](https://www.comfy.org/cloud).
 - The most sophisticated workflows can be exposed through a simple UI thanks to App Mode.
 - It integrates seamlessly into production pipelines with our API endpoints.
@@ -54,11 +53,6 @@ ComfyUI is the AI creation engine for visual professionals who demand control ov
 
 #### [Manual Install](#manual-install-windows-linux)
 Supports all operating systems and GPU types (NVIDIA, AMD, Intel, Apple Silicon, Ascend).
-
-### Cloud
-
-#### [Comfy Cloud](https://www.comfy.org/cloud)
-- Our official paid cloud version for those who can't afford local hardware.
 
 ## Examples
 See what ComfyUI can do with the [newer template workflows](https://comfy.org/workflows) or old [example workflows](https://comfyanonymous.github.io/ComfyUI_examples/).
@@ -78,7 +72,7 @@ See what ComfyUI can do with the [newer template workflows](https://comfy.org/wo
 - Load complete checkpoints or separate diffusion models, VAEs, text encoders, LoRAs, ControlNets, adapters, and upscalers from supported model formats.
 - Built-in tools for inpainting, outpainting, reference conditioning, masks and compositing, model merging, upscaling, frame interpolation, segmentation, depth estimation, and media processing.
 - Save and load workflows as JSON, or recover complete workflows and seeds from supported generated media.
-- Runs fully offline: core does not download anything unless you request it. Use `--offline` to disable the optional paid [Comfy API nodes](https://docs.comfy.org/tutorials/api-nodes/overview) and force all built-in functionality to stay offline, or `--disable-partner-nodes` to only disable the API nodes.
+- Runs fully offline: no API nodes, no account sign-in, no ComfyUI-Manager, no remote frontend downloads. The web UI is always served with a Content-Security-Policy that blocks connections to anything other than this server.
 - Extend ComfyUI with custom nodes
 - Configure additional model locations with [`extra_model_paths.yaml`](extra_model_paths.yaml.example).
 - Support for saving and loading high bit depth images and videos: 16 bit PNG images, 32 bit EXR, 10 bit AVIF are supported and more.
@@ -317,31 +311,6 @@ For models compatible with Iluvatar Extension for PyTorch. Here's a step-by-step
 2. Launch ComfyUI by running `python main.py`
 
 
-## [ComfyUI-Manager](https://github.com/Comfy-Org/ComfyUI-Manager/tree/manager-v4)
-
-**ComfyUI-Manager** is an extension that allows you to easily install, update, and manage custom nodes for ComfyUI.
-
-### Setup
-
-1. Install the manager dependencies:
-   ```bash
-   pip install -r manager_requirements.txt
-   ```
-
-2. Enable the manager with the `--enable-manager` flag when running ComfyUI:
-   ```bash
-   python main.py --enable-manager
-   ```
-
-### Command Line Options
-
-| Flag | Description |
-|------|-------------|
-| `--enable-manager` | Enable ComfyUI-Manager |
-| `--enable-manager-legacy-ui` | Use the legacy manager UI instead of the new UI (implies `--enable-manager`) |
-| `--disable-manager-ui` | Disable the manager UI and endpoints while keeping background features like security checks and scheduled installation completion (requires `--enable-manager`) |
-
-
 # Running
 
 ```python main.py```
@@ -408,29 +377,6 @@ As of August 15, 2024, we have transitioned to a new frontend, which is now host
 ### Reporting Issues and Requesting Features
 
 For any bugs, issues, or feature requests related to the frontend, please use the [ComfyUI Frontend repository](https://github.com/Comfy-Org/ComfyUI_frontend). This will help us manage and address frontend-specific concerns more efficiently.
-
-### Using the Latest Frontend
-
-The new frontend is now the default for ComfyUI. However, please note:
-
-1. The frontend in the main ComfyUI repository is updated fortnightly.
-2. Daily releases are available in the separate frontend repository.
-
-To use the most up-to-date frontend version:
-
-1. For the latest daily release, launch ComfyUI with this command line argument:
-
-   ```
-   --front-end-version Comfy-Org/ComfyUI_frontend@latest
-   ```
-
-2. For a specific version, replace `latest` with the desired version number:
-
-   ```
-   --front-end-version Comfy-Org/ComfyUI_frontend@1.2.2
-   ```
-
-This approach allows you to easily switch between the stable fortnightly release and the cutting-edge daily updates, or even specific versions for testing purposes.
 
 # QA
 

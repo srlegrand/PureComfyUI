@@ -79,7 +79,6 @@ def _running_server(tmp_path: Path, disabled_node: str, testing_nodes: bool = Fa
         "--cpu",
         "--disable-assets",
         "--cache-none",
-        "--disable-api-nodes",
         "--output-directory",
         str(tmp_path / "output"),
         "--temp-directory",

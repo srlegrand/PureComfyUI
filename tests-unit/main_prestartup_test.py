@@ -18,7 +18,7 @@ def _load_execute_prestartup_script():
     function = next(node for node in module.body if isinstance(node, ast.FunctionDef) and node.name == "execute_prestartup_script")
     compiled = compile(ast.Module(body=[function], type_ignores=[]), filename=str(main_path), mode="exec")
     namespace = {
-        "args": SimpleNamespace(disable_all_custom_nodes=False, whitelist_custom_nodes=[], enable_manager=False),
+        "args": SimpleNamespace(disable_all_custom_nodes=False, whitelist_custom_nodes=[]),
         "folder_paths": folder_paths,
         "governance": governance,
         "importlib": importlib,

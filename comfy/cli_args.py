@@ -159,12 +159,6 @@ upcast.add_argument("--force-upcast-attention", action="store_true", help="Force
 upcast.add_argument("--dont-upcast-attention", action="store_true", help="Disable all upcasting of attention. Should be unnecessary except for debugging.")
 
 
-parser.add_argument("--enable-manager", action="store_true", help="Enable the ComfyUI-Manager feature.")
-manager_group = parser.add_mutually_exclusive_group()
-manager_group.add_argument("--disable-manager-ui", action="store_true", help="Disables only the ComfyUI-Manager UI and endpoints. Scheduled installations and similar background tasks will still operate.")
-manager_group.add_argument("--enable-manager-legacy-ui", action="store_true", help="Enables the legacy UI of ComfyUI-Manager. Implies --enable-manager.")
-
-
 vram_group = parser.add_mutually_exclusive_group()
 vram_group.add_argument("--gpu-only", action="store_true", help="Store and run everything (text encoders/CLIP models, etc... on the GPU).")
 vram_group.add_argument("--highvram", action="store_true", help="By default models will be unloaded to CPU memory after being used. This option keeps them in GPU memory.")
@@ -216,32 +210,12 @@ parser.add_argument("--disable-metadata", action="store_true", help="Disable sav
 parser.add_argument("--disable-all-custom-nodes", action="store_true", help="Disable loading all custom nodes.")
 parser.add_argument("--whitelist-custom-nodes", type=str, nargs='+', default=[], help="Specify custom node folders to load even when --disable-all-custom-nodes is enabled.")
 parser.add_argument("--disabled-nodes-config", type=str, default=None, metavar="PATH", help="Path to a YAML file listing node IDs to disable.")
-parser.add_argument("--disable-partner-nodes", action="store_true", help="Disable loading partner nodes (the paid API nodes). The frontend keeps its internet access.")
-parser.add_argument("--offline", action="store_true", help="Prevent the frontend from communicating with the internet by setting a restrictive Content-Security-Policy header. Also disables partner nodes.")
-parser.add_argument("--disable-api-nodes", action="store_true", help="Deprecated alias for --offline. Use --offline, or --disable-partner-nodes to only disable partner nodes.")
 
 parser.add_argument("--multi-user", action="store_true", help="Enables per-user storage.")
 
 parser.add_argument("--verbose", action=VerboseAction, nargs='*', default=[], metavar='LEVEL FILE', help='Set console logging with no values or LEVEL, or add a LEVEL FILE log output. May be repeated.')
 parser.add_argument("--log-stdout", action="store_true", help="Send normal process output to stdout instead of stderr (default).")
 
-
-# The default built-in provider hosted under web/
-DEFAULT_VERSION_STRING = "comfyanonymous/ComfyUI@latest"
-
-parser.add_argument(
-    "--front-end-version",
-    type=str,
-    default=DEFAULT_VERSION_STRING,
-    help="""
-    Specifies the version of the frontend to be used. This command needs internet connectivity to query and
-    download available frontend implementations from GitHub releases.
-
-    The version string should be in the format of:
-    [repoOwner]/[repoName]@[version]
-    where version is one of: "latest" or a valid version number (e.g. "1.0.0")
-    """,
-)
 
 def is_valid_directory(path: str) -> str:
     """Validate if the given path is a directory, and check permissions."""
@@ -257,20 +231,13 @@ parser.add_argument(
     "--front-end-root",
     type=is_valid_directory,
     default=None,
-    help="The local filesystem path to the directory where the frontend is located. Overrides --front-end-version.",
+    help="The local filesystem path to the directory where the frontend is located.",
 )
 
 parser.add_argument("--user-directory", type=is_valid_directory, default=None, help="Set the ComfyUI user directory with an absolute path. Overrides --base-directory.")
 parser.add_argument("--models-directory", type=is_valid_directory, default=None, help="Set the ComfyUI models directory. Overrides the models folder in --base-directory.")
 
 parser.add_argument("--enable-compress-response-body", action="store_true", help="Enable compressing response body.")
-
-parser.add_argument(
-    "--comfy-api-base",
-    type=str,
-    default="https://api.comfy.org",
-    help="Set the base URL for the ComfyUI API.  (default: https://api.comfy.org)",
-)
 
 database_default_path = os.path.abspath(
     os.path.join(os.path.dirname(__file__), "..", "user", "comfyui.db")
@@ -279,7 +246,7 @@ parser.add_argument("--database-url", type=str, default=None, help="Specify the 
 parser.add_argument("--enable-assets", action="store_true", help="Enable the assets system (API routes, database synchronization, and background scanning). Off by default.")
 parser.add_argument("--disable-assets", action="store_true", help="Disable the assets system, even when --enable-assets is also given.")
 parser.add_argument("--enable-asset-hashing", action="store_true", help="Compute blake3 content hashes when scanning assets. Files uploaded through the API are hashed either way. Hashing enables future asset-portability features (deduplication, cross-machine model resolution) but adds startup cost and per-output cost on large models directories. Off by default; enable to opt in. Requires the assets system (--enable-assets or --windows-standalone-build).")
-parser.add_argument("--feature-flag", type=str, action='append', default=[], metavar="KEY[=VALUE]", help="Set a server feature flag. Use KEY=VALUE to set an explicit value, or bare KEY to set it to true. Can be specified multiple times. Boolean values (true/false) and numbers are auto-converted. Examples: --feature-flag show_signin_button=true  or  --feature-flag show_signin_button")
+parser.add_argument("--feature-flag", type=str, action='append', default=[], metavar="KEY[=VALUE]", help="Set a server feature flag. Use KEY=VALUE to set an explicit value, or bare KEY to set it to true. Can be specified multiple times. Boolean values (true/false) and numbers are auto-converted. Examples: --feature-flag my_flag=true  or  --feature-flag my_flag")
 parser.add_argument("--list-feature-flags", action="store_true", help="Print the registry of known CLI-settable feature flags as JSON and exit.")
 
 if comfy.options.args_parsing:
@@ -297,12 +264,6 @@ if args.windows_standalone_build:
     args.auto_launch = True
     args.enable_assets = True
 
-if args.disable_api_nodes:
-    args.offline = True
-
-if args.offline:
-    args.disable_partner_nodes = True
-
 # Assets are off unless --enable-assets is given; --disable-assets wins over it.
 if not args.enable_assets:
     args.disable_assets = True
@@ -315,10 +276,6 @@ if args.disable_comfy_compiler:
 
 if args.force_fp16:
     args.fp16_unet = True
-
-# '--enable-manager-legacy-ui' is meaningless unless the manager is enabled, so imply '--enable-manager'.
-if args.enable_manager_legacy_ui:
-    args.enable_manager = True
 
 
 # '--fast' is not provided, use an empty set

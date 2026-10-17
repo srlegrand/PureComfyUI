@@ -159,7 +159,8 @@ class CacheSet:
         }
         return result
 
-SENSITIVE_EXTRA_DATA_KEYS = ("auth_token_comfy_org", "api_key_comfy_org")
+# Account credentials a stock frontend may still attach to a prompt. They are dropped on arrival.
+DISCARDED_EXTRA_DATA_KEYS = ("auth_token_comfy_org", "api_key_comfy_org", "comfy_usage_source")
 
 def get_input_data(inputs, class_def, unique_id, execution_list=None, dynprompt=None, extra_data={}):
     is_v3 = issubclass(class_def, _ComfyNodeInternal)
@@ -204,12 +205,6 @@ def get_input_data(inputs, class_def, unique_id, execution_list=None, dynprompt=
                 hidden_inputs_v3[io.Hidden.extra_pnginfo] = extra_data.get('extra_pnginfo', None)
             if io.Hidden.unique_id.name in hidden:
                 hidden_inputs_v3[io.Hidden.unique_id] = unique_id
-            if io.Hidden.auth_token_comfy_org.name in hidden:
-                hidden_inputs_v3[io.Hidden.auth_token_comfy_org] = extra_data.get("auth_token_comfy_org", None)
-            if io.Hidden.api_key_comfy_org.name in hidden:
-                hidden_inputs_v3[io.Hidden.api_key_comfy_org] = extra_data.get("api_key_comfy_org", None)
-            if io.Hidden.comfy_usage_source.name in hidden:
-                hidden_inputs_v3[io.Hidden.comfy_usage_source] = extra_data.get("comfy_usage_source", None)
             if io.Hidden.execution_list.name in hidden:
                 hidden_inputs_v3[io.Hidden.execution_list] = execution_list
     else:
@@ -226,12 +221,6 @@ def get_input_data(inputs, class_def, unique_id, execution_list=None, dynprompt=
                     input_data_all[x] = [extra_data.get('extra_pnginfo', None)]
                 if h[x] == "UNIQUE_ID":
                     input_data_all[x] = [unique_id]
-                if h[x] == "AUTH_TOKEN_COMFY_ORG":
-                    input_data_all[x] = [extra_data.get("auth_token_comfy_org", None)]
-                if h[x] == "API_KEY_COMFY_ORG":
-                    input_data_all[x] = [extra_data.get("api_key_comfy_org", None)]
-                if h[x] == "COMFY_USAGE_SOURCE":
-                    input_data_all[x] = [extra_data.get("comfy_usage_source", None)]
     v3_data["hidden_inputs"] = hidden_inputs_v3
     return input_data_all, missing_keys, v3_data
 

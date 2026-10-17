@@ -19,23 +19,7 @@ class FeatureFlagInfo(TypedDict):
 
 # Registry of known CLI-settable feature flags.
 # Launchers can query this via --list-feature-flags to discover valid flags.
-CLI_FEATURE_FLAG_REGISTRY: dict[str, FeatureFlagInfo] = {
-    "show_signin_button": {
-        "type": "bool",
-        "default": False,
-        "description": "Show the sign-in button in the frontend even when not signed in",
-    },
-    "enable_telemetry": {
-        "type": "bool",
-        "default": False,
-        "description": "Signal the frontend that telemetry collection is enabled",
-    },
-    "partner_run_gate_enabled": {
-        "type": "bool",
-        "default": True,
-        "description": "Gate the local Run button behind sign-in when the graph contains partner nodes",
-    },
-}
+CLI_FEATURE_FLAG_REGISTRY: dict[str, FeatureFlagInfo] = {}
 
 
 def _coerce_bool(v: str) -> bool:
@@ -107,7 +91,9 @@ _CORE_FEATURE_FLAGS: dict[str, Any] = {
     "supports_preview_metadata": True,
     "supports_model_type_tags": True,
     "max_upload_size": args.max_upload_size * 1024 * 1024, # Convert MB to bytes
-    "extension": {"manager": {"supports_v4": True}},
+    "show_signin_button": False,
+    "enable_telemetry": False,
+    "partner_run_gate_enabled": False,
     "node_replacements": True,
     # main.py replaces this at startup with the selected AssetManager's state.
     "assets": not args.disable_assets,

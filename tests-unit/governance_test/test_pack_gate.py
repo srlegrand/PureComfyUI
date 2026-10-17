@@ -88,7 +88,6 @@ async def _run_both_gates(
 
 @pytest.fixture(autouse=True)
 def isolated_pack_policy(monkeypatch: pytest.MonkeyPatch):
-    monkeypatch.setattr(args, "enable_manager", False)
     monkeypatch.setattr(args, "disable_all_custom_nodes", False)
     monkeypatch.setattr(args, "whitelist_custom_nodes", [])
     governance.set_custom_node_policy(None, frozenset(), {})
@@ -139,8 +138,7 @@ async def test_posture_matrix_applies_at_both_gates_with_manager_disabled(
         import_sentinel,
     )
 
-    # Then Manager absence never bypasses either gate
-    assert args.enable_manager is False
+    # Then neither gate is bypassed
     assert (prestartup_ran, import_ran) == (expected_to_run, expected_to_run)
 
 
@@ -385,7 +383,7 @@ def test_real_main_rejects_unknown_pack_without_manager(tmp_path: Path) -> None:
         "import runpy, sys\n"
         "from app import governance\n"
         "governance.initialize = lambda: governance.set_custom_node_policy('allowlist', frozenset(), {})\n"
-        f"sys.argv = [{str(MAIN_PATH)!r}, '--base-directory', {str(tmp_path)!r}, '--cpu', '--disable-api-nodes', '--disable-assets', '--quick-test-for-ci']\n"
+        f"sys.argv = [{str(MAIN_PATH)!r}, '--base-directory', {str(tmp_path)!r}, '--cpu', '--disable-assets', '--quick-test-for-ci']\n"
         f"runpy.run_path({str(MAIN_PATH)!r}, run_name='__main__')\n"
     )
 

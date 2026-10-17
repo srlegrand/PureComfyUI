@@ -25,7 +25,6 @@ def governed(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> Path:
     monkeypatch.setattr(governance, "_disabled_nodes", frozenset(), raising=False)
     monkeypatch.setattr(args, "disabled_nodes_config", None)
     monkeypatch.setattr(args, "extra_model_paths_config", None)
-    monkeypatch.setattr(args, "enable_manager", False)
     # A custom-node policy switches off bytecode writes for the process; undo that and the pack policy after each test.
     monkeypatch.setattr(sys, "dont_write_bytecode", sys.dont_write_bytecode)
     monkeypatch.setenv("PYTHONDONTWRITEBYTECODE", os.environ.get("PYTHONDONTWRITEBYTECODE", ""))
@@ -254,25 +253,6 @@ def _custom_node_policy(mode: str) -> dict:
 
 
 @pytest.mark.parametrize("mode", ["allowlist", "blocklist"])
-def test_initialize_turns_manager_off_under_custom_node_policy(
-    governed: Path,
-    monkeypatch: pytest.MonkeyPatch,
-    caplog: pytest.LogCaptureFixture,
-    mode: str,
-) -> None:
-    # Given Manager is enabled, whose prestartup runs scheduled install scripts before any pack is checked
-    _use_policy(governed, monkeypatch, _custom_node_policy(mode))
-    monkeypatch.setattr(args, "enable_manager", True)
-
-    # When the policy is applied
-    governance.initialize()
-
-    # Then startup continues with Manager off, and the log says why
-    assert args.enable_manager is False
-    assert "ComfyUI-Manager is turned off" in caplog.text
-
-
-@pytest.mark.parametrize("mode", ["allowlist", "blocklist"])
 def test_initialize_applies_custom_node_policy_without_manager(governed: Path, monkeypatch: pytest.MonkeyPatch, mode: str) -> None:
     # Given a custom-node policy with Manager off
     _use_policy(governed, monkeypatch, _custom_node_policy(mode))
@@ -282,17 +262,6 @@ def test_initialize_applies_custom_node_policy_without_manager(governed: Path, m
 
     # Then the pack gate takes the policy's mode
     assert governance._custom_node_mode == mode
-
-
-def test_initialize_allows_manager_without_custom_node_policy(governed: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    # Given Manager is enabled and the policy governs node ids only
-    _use_policy(governed, monkeypatch, {"activeForms": ["nodeId"], "disabledNodes": ["SomeNode"]})
-    monkeypatch.setattr(args, "enable_manager", True)
-
-    # When the policy is applied, then startup continues
-    governance.initialize()
-
-    assert governance._custom_node_mode is None
 
 
 def test_initialize_accepts_extra_model_paths_that_add_custom_nodes(governed: Path, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -305,27 +274,6 @@ def test_initialize_accepts_extra_model_paths_that_add_custom_nodes(governed: Pa
 
     # When the policy is applied, then startup continues
     governance.initialize()
-
-
-def test_manager_import_waits_until_after_governance(tmp_path: Path) -> None:
-    sentinel_path = tmp_path / "manager-imported"
-    manager_package = tmp_path / "comfyui_manager"
-    manager_package.mkdir()
-    (manager_package / "__init__.py").write_text(
-        f"from pathlib import Path\nPath({str(sentinel_path)!r}).write_text('imported', encoding='utf-8')\n",
-        encoding="utf-8",
-    )
-
-    result = _run_governed(
-        MAIN_PATH,
-        "--enable-manager",
-        "--quick-test-for-ci",
-        import_path=tmp_path,
-    )
-
-    assert result.returncode != 0
-    assert POLICY_MESSAGE in result.stdout + result.stderr
-    assert not sentinel_path.exists()
 
 
 def test_governance_failure_precedes_prestartup_scripts(tmp_path: Path) -> None:
